@@ -1,0 +1,40 @@
+version: '3'
+
+services:
+  user_service:
+    build: './user-service'
+    ports: 
+      - "3001:3000"
+    depends_on:
+      - db1
+    environment:
+      - NODE_ENV=production
+      - DB_HOST=db1:27017
+      - ADDR_RPC_HOST=address_service
+
+  address_service:
+    build: './address-service'
+    ports: 
+      - "3002:3000"
+    depends_on:
+      - db2
+    environment:
+      - NODE_ENV=production
+      - DB_HOST=db2:27017
+      - USER_RPC_HOST=user_service
+
+  db1:
+    image: mongo:3.6
+
+  db2:
+    image: mongo:3.6
+
+  nginx:
+    image: nginx:stable-alpine
+    ports:
+      - "80:8080"
+    volumes:
+      - ./default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - user_service
+      - address_service
